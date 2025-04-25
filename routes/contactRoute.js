@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const validateObjectId = require("../middleware/validateObjectId");
 const {
   getContact,
   createContact,
@@ -7,7 +8,6 @@ const {
   updateContact,
   deleteContact,
 } = require("../controllers/contactController");
-const validateObjectId = require("../middleware/validateObjectId");
 
 router.route("/").get(getContacts).post(createContact);
 router
