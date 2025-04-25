@@ -46,14 +46,32 @@ const getContact = asyncHandler(async (req, res) => {
 //@route PUT /api/contact/:id
 //@access public
 const updateContact = asyncHandler(async (req, res) => {
-  res.json({ msg: `update contact for ${req.params.id}` });
+  const contact = await Contact.findById(req.params.id);
+  if (!contact) {
+    res.status(404);
+    throw new Error("Contact not found");
+  }
+
+  const updatedContact = await Contact.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
+  res.json(updatedContact);
 });
 
 //@desc DELETE single contact
 //@route DELETE /api/contact/:id
 //@access public
 const deleteContact = asyncHandler(async (req, res) => {
-  res.json({ msg: `delete contact for ${req.params.id}` });
+  const contact = await Contact.findById(req.params.id);
+  console.log(contact);
+  if (!contact) {
+    res.status(404);
+    throw new Error("Contact not found");
+  }
+  await contact.deleteOne();
+  res.json(contact);
 });
 
 module.exports = {
