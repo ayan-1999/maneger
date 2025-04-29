@@ -3,15 +3,15 @@ const Contact = require("../models/contactModel");
 
 //@desc Get all contacts
 //@route GET /api/contacts
-//@access public
+//@access private
 const getContacts = asyncHandler(async (req, res) => {
-  const contact = await Contact.find();
+  const contact = await Contact.find({ user_id: req.user.id });
   res.json(contact);
 });
 
 //@desc POST all contacts
 //@route POST /api/contacts
-//@access public
+//@access private
 const createContact = asyncHandler(async (req, res) => {
   console.log(req.body);
   const { name, email, phone } = req.body;
@@ -25,13 +25,14 @@ const createContact = asyncHandler(async (req, res) => {
     name,
     email,
     phone,
+    user_id: req.user.id,
   });
   res.json(contact);
 });
 
 //@desc GET single contact
-//@route GET /api/contact/:id
-//@access public
+//@route GET /api/contacts/:id
+//@access private
 const getContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
   if (!contact) {
@@ -43,13 +44,18 @@ const getContact = asyncHandler(async (req, res) => {
 });
 
 //@desc Update single contact
-//@route PUT /api/contact/:id
-//@access public
+//@route PUT /api/contacts/:id
+//@access private
 const updateContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
   if (!contact) {
     res.status(404);
     throw new Error("Contact not found");
+  }
+
+  if (contact.user_id.toString() !== req.user.id) {
+    req.status(403);
+    throw new Error("User dont have permission to delte the contact");
   }
 
   const updatedContact = await Contact.findByIdAndUpdate(
@@ -61,8 +67,8 @@ const updateContact = asyncHandler(async (req, res) => {
 });
 
 //@desc DELETE single contact
-//@route DELETE /api/contact/:id
-//@access public
+//@route DELETE /api/contacts/:id
+//@access private
 const deleteContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
   console.log(contact);
@@ -70,7 +76,11 @@ const deleteContact = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Contact not found");
   }
-  await contact.deleteOne();
+  if (contact.user_id.toString() !== req.user.id) {
+    req.status(403);
+    throw new Error("User dont have permission to delte the contact");
+  }
+  await contact.deleteOne({ _id: req.params.id });
   res.json(contact);
 });
 
